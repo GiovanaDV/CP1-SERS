@@ -2,34 +2,21 @@
 CP1 2 Semestre de SERS
 Giovana Dias Valentini RM562390
 
-# CHECKPOINT 01 – Data Science e Machine Learning no Python e Orange Data Mining 
+# CHECKPOINT 01 – Data Science e Machine Learning no Python e Orange Data Mining
+Perguntas dissertativas 
 PARTE 1 – Exercícios iniciais com Individual Household Electric Power Consumption 
-1. Carregue o dataset e exiba as 10 primeiras linhas. 
 2. Explique a diferença entre as variáveis Global_active_power e Global_reactive_power. 
-3. Verifique se existem valores ausentes no dataset. Quantifique-os. 
-4. Converta a coluna Date para o tipo datetime e crie uma nova coluna com o dia da semana 
-correspondente. 
-5. Filtre os registros apenas do ano de 2007 e calcule a média de consumo diário de 
-Global_active_power. 
+  - As vari[aveis representam tipos diferentes de potência elétrica. A Global_active_power representa a potência ativa, a energia realmente consumida para realizar trabalho útil (a que vai ser consumida). Já a Global_reactive_power mostra a potência reativa, a energia que circula entre os componentes sem ser consumida (ocupa espaço, circula)
+
 6. Gere um gráfico de linha mostrando a variação de Global_active_power em um único dia à 
 sua escolha. 
+<img width="1497" height="746" alt="Captura de tela 2025-08-30 092723" src="https://github.com/user-attachments/assets/21d52440-fa3e-46b7-97ed-4503badf744d" />
+
 7. Crie um histograma da variável Voltage. O que pode ser observado sobre sua distribuição? 
-8. Calcule o consumo médio por mês em todo o período disponível no dataset. 
-9. Identifique o dia com maior consumo de energia ativa global (Global_active_power). 
-10. Compare o consumo médio de energia ativa global em dias de semana versus finais de 
-semana. 
-11. Calcule a correlação entre as variáveis Global_active_power, Global_reactive_power, 
-Voltage e Global_intensity. 
-12. Crie uma nova variável chamada Total_Sub_metering que some Sub_metering_1, 
-Sub_metering_2 e Sub_metering_3. 
-13. Verifique se há algum mês em que Total_Sub_metering ultrapassa a média de 
-Global_active_power. 
-14. Faça um gráfico de série temporal do Voltage para o ano de 2008. 
-15. Compare o consumo entre os meses de verão e inverno (no hemisfério norte). 
-16. Aplique uma amostragem aleatória de 1% dos dados e verifique se a distribuição de 
-Global_active_power é semelhante à da base completa. 
-17. Utilize uma técnica de normalização (Min-Max Scaling) para padronizar as variáveis 
-numéricas principais. 
+<img width="1238" height="740" alt="Captura de tela 2025-08-30 092740" src="https://github.com/user-attachments/assets/af01de79-7ce7-471b-83da-e4593a2ccae0" />
+  - É possível observar que o gráfico tem um formato de curva em sino, isso significa então que a maioria das medidas de tensão elétrica fica em torno de um valor central.
+  - A variável Voltage ficou concentrada em torno de 240V, mostrando que o fornecimento de energia foi relativamente estável.
+
 18. Aplique K-means para segmentar os dias em 3 grupos distintos de consumo elétrico. 
 Interprete os resultados. 
 19. Realize uma decomposição de série temporal (tendência, sazonalidade e resíduo) para 
