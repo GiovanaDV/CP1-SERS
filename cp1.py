@@ -52,7 +52,7 @@ plt.ylabel("Consumo Global Ativo (kW)", fontsize=12)
 plt.xticks(rotation=45)
 plt.grid(True, linestyle="--", alpha=0.6)
 plt.tight_layout()
-#plt.show()
+plt.show()
 
 # 7. Crie um histograma da variável Voltage.
 plt.figure(figsize=(10,6))
@@ -62,7 +62,7 @@ plt.xlabel("Voltage (Volts)", fontsize=12)
 plt.ylabel("Frequência", fontsize=12)
 plt.grid(axis='y', linestyle='--', alpha=0.6)
 plt.tight_layout()
-#plt.show()
+plt.show()
 
 print("8. Calcule o consumo médio por mês em todo o período disponível no dataset.  ----------------------------------- \n")
 df['AnoMes'] = df['Date'].dt.to_period('M') # agrupando por ano e mes
