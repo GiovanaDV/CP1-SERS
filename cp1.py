@@ -5,7 +5,7 @@ Individual Household Electric Power Consumption --> contém medições de consum
 
 import pandas as pd
 
-caminho = "C:\\Users\\giova\\OneDrive\\Desktop\\FIAP\\SERS\\CP1-SERS\\household_power_consumption.txt"
+caminho = "C:\\Users\\labsfiap\\Downloads\\individual+household+electric+power+consumption\\household_power_consumption.txt"
 
 df = pd.read_csv(
     caminho,
@@ -52,7 +52,7 @@ plt.ylabel("Consumo Global Ativo (kW)", fontsize=12)
 plt.xticks(rotation=45)
 plt.grid(True, linestyle="--", alpha=0.6)
 plt.tight_layout()
-plt.show()
+#plt.show()
 
 # 7. Crie um histograma da variável Voltage.
 plt.figure(figsize=(10,6))
@@ -62,7 +62,7 @@ plt.xlabel("Voltage (Volts)", fontsize=12)
 plt.ylabel("Frequência", fontsize=12)
 plt.grid(axis='y', linestyle='--', alpha=0.6)
 plt.tight_layout()
-plt.show()
+#plt.show()
 
 print("8. Calcule o consumo médio por mês em todo o período disponível no dataset.  ----------------------------------- \n")
 df['AnoMes'] = df['Date'].dt.to_period('M') # agrupando por ano e mes
@@ -82,11 +82,30 @@ df['FimDeSemana'] = df['Dia_da_semana'].isin(['Saturday', 'Sunday']) # ver se é
 consumo_diario = df.groupby(['Date', 'FimDeSemana'])['Global_active_power'].sum().reset_index() # média de consumo diário
 media_comparacao = consumo_diario.groupby('FimDeSemana')['Global_active_power'].mean() # média de dias de semana vs fim de semana
 print("Dias de semana:", round(media_comparacao.loc[False], 2), "kWh")
-print("Finais de semana:", round(media_comparacao.loc[True], 2), "kWh")
+print("Finais de semana:", round(media_comparacao.loc[True], 2), "kWh \n")
 
+# correlaçao --> como duas variaveis estao relacionadas / valor proximo de 1: forte correlação positiva / valor proximo de -1: forte correlacao negativa / valor proximo de 0: pouca ou nenhuma correlacao
+print("11. Calcule a correlação entre as variáveis Global_active_power, Global_reactive_power, Voltage e Global_intensity \n")
+colunas = ['Global_active_power', 'Global_reactive_power', 'Voltage', 'Global_intensity']
+correlacao = df[colunas].corr() # calcula a correlacao
+print("Correlação entre as variáveis: ")
+print(correlacao)
+print("\n")
 
+print("12. Crie uma nova variável chamada Total_Sub_metering que some Sub_metering_1, Sub_metering_2 e Sub_metering_3 --\n")
+df['Total_Sub_metering'] = df['Sub_metering_1'] + df['Sub_metering_2'] + df['Sub_metering_3']
+print(df[['Sub_metering_1', 'Sub_metering_2', 'Sub_metering_3', 'Total_Sub_metering']].head())
+print("\n")
 
+print("13. Verifique se há algum mês em que Total_Sub_metering ultrapassa a média de Global_active_power -------------- \n")
+media_mensal_sub = df.groupby('AnoMes')['Total_Sub_metering'].mean()
+comparacao = media_mensal_sub > media_mensal
+meses_ultrapassados = comparacao[comparacao == True].index
+print("Meses em que Total_Sub_metering foi maior que Global_active_power (média mensal): ")
+for mes in meses_ultrapassados:
+    print(mes)
 
+print("14. Faça um gráfico de série temporal do Voltage para o ano de 2008. ------------------------------------------- \n")
 
 
 
