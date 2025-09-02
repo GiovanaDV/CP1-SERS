@@ -6,11 +6,12 @@ Individual Household Electric Power Consumption --> contém medições de consum
 import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures
 import matplotlib.pyplot as plt
 from statsmodels.tsa.seasonal import seasonal_decompose
+from sklearn.decomposition import PCA
 
 caminho = "C:\\Users\\labsfiap\\Downloads\\household_power_consumption.txt"
 
@@ -217,11 +218,125 @@ plt.show()
 Parte 2: Exercícios adicionais no dataset inicial
 '''
 
-print("21. Treine um modelo de regressão linear simples para prever Global_active_power a partir de Global_intensity. --\n")
+print("21. Séries temporais por hora -----------------------------------------------------------------------------------\n")
+# Criar índice datetime combinando Date e Time
+df_hora = df.copy()
+df_hora['DateTime'] = pd.to_datetime(df_hora['Date'].dt.strftime('%Y-%m-%d') + ' ' + df_hora['Time'])
 
+# Definir índice datetime
+df_hora.set_index('DateTime', inplace=True)
 
+# Reamostrar para média por hora
+consumo_hora = df_hora['Global_active_power'].resample('H').mean()
 
+# Extraindo a hora do dia para análise do consumo médio por hora do dia
+consumo_hora_dia = consumo_hora.groupby(consumo_hora.index.hour).mean()
 
+print("Média de consumo por hora do dia (0 a 23):")
+print(consumo_hora_dia)
 
+# Horário(s) de maior consumo médio:
+hora_max_consumo = consumo_hora_dia.idxmax()
+print(f"\nHora do dia com maior consumo médio: {hora_max_consumo}:00h")
 
+print("22. Autocorrelação do consumo -----------------------------------------------------------------------------------\n")
+# Usar série por hora já criada em 21
+serie_consumo = consumo_hora.dropna()
 
+# Função para autocorrelação manual simples
+def autocorr(x, lag=1):
+    return x.autocorr(lag=lag)
+
+lags = [1, 24, 48]  # em horas
+for lag in lags:
+    val = autocorr(serie_consumo, lag)
+    print(f"Autocorrelação com lag={lag}h: {val:.4f}")
+
+print("\nPergunta: Existem padrões repetidos diariamente?")
+print("Resposta: Autocorrelação alta em lag=24h indicaria padrão diário repetido.")
+
+print("23. Redução de dimensionalidade com PCA -------------------------------------------------------------------------\n")
+# Selecionar variáveis (sem valores nulos)
+df_pca = df[['Global_active_power', 'Global_reactive_power', 'Voltage', 'Global_intensity']].dropna()
+
+# Normalizar para PCA (opcional mas recomendado)
+scaler_pca = MinMaxScaler()
+X_pca = scaler_pca.fit_transform(df_pca)
+
+# Aplicar PCA com 2 componentes
+pca = PCA(n_components=2)
+X_pca2 = pca.fit_transform(X_pca)
+
+print("Variância explicada por componente:")
+for i, var in enumerate(pca.explained_variance_ratio_):
+    print(f"Componente {i+1}: {var:.4f}")
+
+# Salvar resultado em dataframe
+df_pca_result = pd.DataFrame(X_pca2, columns=['PC1', 'PC2'])
+
+print("24. Visualização de clusters no espaço PCA ----------------------------------------------------------------------\n")
+# Aplicar KMeans nos componentes PCA
+kmeans_pca = KMeans(n_clusters=3, random_state=42)
+clusters_pca = kmeans_pca.fit_predict(df_pca_result)
+
+df_pca_result['cluster'] = clusters_pca
+
+# Plot dos clusters
+plt.figure(figsize=(10,6))
+colors = ['red', 'green', 'blue']
+for cluster in range(3):
+    subset = df_pca_result[df_pca_result['cluster'] == cluster]
+    plt.scatter(subset['PC1'], subset['PC2'], s=10, color=colors[cluster], label=f'Cluster {cluster}')
+plt.xlabel('PC1')
+plt.ylabel('PC2')
+plt.title('Clusters no Espaço PCA')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+print("Pergunta: os grupos se separam de forma clara?")
+print("Resposta: Visualmente, observe se os pontos formam grupos bem distintos.")
+
+print("24. Regressão polinomial vs linear ------------------------------------------------------------------------------\n")
+# Selecionar dados, remover nulos
+df_regress = df[['Global_active_power', 'Voltage']].dropna()
+
+X_reg = df_regress[['Voltage']].values
+y_reg = df_regress['Global_active_power'].values
+
+# Dividir treino e teste
+X_tr, X_te, y_tr, y_te = train_test_split(X_reg, y_reg, test_size=0.2, random_state=42)
+
+# Regressão Linear
+modelo_lin = LinearRegression()
+modelo_lin.fit(X_tr, y_tr)
+y_pred_lin = modelo_lin.predict(X_te)
+rmse_lin = mean_squared_error(y_te, y_pred_lin, squared=False)
+
+# Regressão Polinomial grau 2
+poly = PolynomialFeatures(degree=2)
+X_tr_poly = poly.fit_transform(X_tr)
+X_te_poly = poly.transform(X_te)
+
+modelo_poly = LinearRegression()
+modelo_poly.fit(X_tr_poly, y_tr)
+y_pred_poly = modelo_poly.predict(X_te_poly)
+rmse_poly = mean_squared_error(y_te, y_pred_poly, squared=False)
+
+print(f"RMSE Regressão Linear: {rmse_lin:.4f}")
+print(f"RMSE Regressão Polinomial (grau 2): {rmse_poly:.4f}")
+
+# Gráfico das curvas ajustadas
+plt.figure(figsize=(10,6))
+plt.scatter(X_te, y_te, color='gray', alpha=0.5, label='Dados Reais')
+
+# Ordenar para linha mais bonita
+ord_idx = X_te.flatten().argsort()
+plt.plot(X_te[ord_idx], y_pred_lin[ord_idx], color='blue', label='Regressão Linear')
+plt.plot(X_te[ord_idx], y_pred_poly[ord_idx], color='red', label='Regressão Polinomial grau 2')
+plt.xlabel('Voltage')
+plt.ylabel('Global_active_power')
+plt.title('Comparação: Regressão Linear vs Polinomial')
+plt.legend()
+plt.grid(True)
+plt.show()
