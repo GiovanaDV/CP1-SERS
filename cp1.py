@@ -2,7 +2,7 @@
 Individual Household Electric Power Consumption --> contém medições de consumo de energia elétrica em uma casa na França
 - registrados a cada min entre 2006 - 2010
 '''
-
+import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression
@@ -267,21 +267,26 @@ plt.legend(); plt.grid(True); plt.show()
 
 
 print("25. Regressão polinomial vs linear ------------------------------------------------------------------------------\n")
-X = df[['Voltage']].dropna().values
-y = df['Global_active_power'].dropna().values
+df_regress = df[['Voltage', 'Global_active_power']].dropna()
+X = df_regress[['Voltage']].values
+y = df_regress['Global_active_power'].values
 X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)
-lin = LinearRegression().fit(X_tr, y_tr) # regressao linear
+lin = LinearRegression().fit(X_tr, y_tr) # 3) Regressão Linear
 y_pred_lin = lin.predict(X_te)
-poly = PolynomialFeatures(2) # regressao polinomial
-X_tr_poly, X_te_poly = poly.fit_transform(X_tr), poly.transform(X_te)
+poly = PolynomialFeatures(degree=2) # Regressão Polinomial
+X_tr_poly = poly.fit_transform(X_tr)
+X_te_poly = poly.transform(X_te)
 pol = LinearRegression().fit(X_tr_poly, y_tr)
 y_pred_poly = pol.predict(X_te_poly)
-print("RMSE Linear:", mean_squared_error(y_te, y_pred_lin, squared=False))
-print("RMSE Polinomial (grau 2):", mean_squared_error(y_te, y_pred_poly, squared=False))
-ord_idx = X_te.flatten().argsort() # plot do grafico
-plt.scatter(X_te, y_te, color='gray', alpha=0.5, label='Dados reais')
-plt.plot(X_te[ord_idx], y_pred_lin[ord_idx], color='blue', label='Linear')
-plt.plot(X_te[ord_idx], y_pred_poly[ord_idx], color='red', label='Polinomial (grau 2)')
+rmse_lin  = np.sqrt(mean_squared_error(y_te, y_pred_lin)) # RMSE
+rmse_poly = np.sqrt(mean_squared_error(y_te, y_pred_poly))
+print(f"RMSE Linear: {rmse_lin:.4f}")
+print(f"RMSE Polinomial (grau 2): {rmse_poly:.4f}")
+ord_idx = X_te.flatten().argsort()
+plt.figure(figsize=(10,6))
+plt.scatter(X_te, y_te, alpha=0.5, label='Dados reais')
+plt.plot(X_te[ord_idx], y_pred_lin[ord_idx], label='Linear')
+plt.plot(X_te[ord_idx], y_pred_poly[ord_idx], label='Polinomial (grau 2)')
 plt.xlabel('Voltage'); plt.ylabel('Global_active_power')
-plt.title('Comparação Regressão Linear vs Polinomial')
-plt.legend(); plt.grid(True); plt.show()
+plt.title('Comparação: Regressão Linear vs Polinomial')
+plt.legend(); plt.grid(True); plt.tight_layout(); plt.show()
